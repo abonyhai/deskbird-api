@@ -41,7 +41,10 @@ export class UserService {
   async findByRefreshToken(refreshToken: string) {
     const users = await this.userRepository.find();
     for (const user of users) {
-      if (user.refreshToken && await bcrypt.compare(refreshToken, user.refreshToken)) {
+      if (
+        user.refreshToken &&
+        (await bcrypt.compare(refreshToken, user.refreshToken))
+      ) {
         return user;
       }
     }
