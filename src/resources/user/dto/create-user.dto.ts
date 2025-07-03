@@ -3,7 +3,7 @@ import {
   ApiProjectEnumProperty,
   ApiProjectOptionalProperty,
 } from 'src/shared/decorators/property';
-import { UserRole } from '../user.enum';
+import { UserRole } from '../utils/user.enum';
 
 export class CreateUserDto {
   @ApiProjectProperty({

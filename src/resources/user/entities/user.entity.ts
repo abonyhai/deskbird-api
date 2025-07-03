@@ -3,7 +3,7 @@ import {
   ApiProjectProperty,
   ApiProjectEnumProperty,
 } from 'src/shared/decorators/property';
-import { UserRole } from './user.enum';
+import { UserRole } from '../utils/user.enum';
 
 @Entity('users')
 export class User {

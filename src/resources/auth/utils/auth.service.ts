@@ -9,7 +9,7 @@ import { randomBytes } from 'crypto';
 import { UserService } from 'src/resources/user/user.service';
 import { LoginDto } from '../dto/login.dto';
 import { SignupDto } from '../dto/signup.dto';
-import { UserRole } from 'src/resources/user/user.enum';
+import { UserRole } from 'src/resources/user/utils/user.enum';
 
 @Injectable()
 export class AuthService {
