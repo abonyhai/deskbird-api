@@ -28,4 +28,10 @@ export class UpdateUserDto {
     description: 'User role',
   })
   role?: UserRole;
+
+  @ApiProjectOptionalProperty({
+    example: 'hashed-refresh-token',
+    description: 'Hashed refresh token',
+  })
+  refreshToken?: string;
 }

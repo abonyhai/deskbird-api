@@ -1,6 +1,7 @@
 import {
   ApiProjectProperty,
   ApiProjectEnumProperty,
+  ApiProjectOptionalProperty,
 } from 'src/shared/decorators/property';
 import { UserRole } from '../user.enum';
 
@@ -28,4 +29,10 @@ export class CreateUserDto {
     description: 'User role',
   })
   role: UserRole;
+
+  @ApiProjectOptionalProperty({
+    example: 'hashed-refresh-token',
+    description: 'Hashed refresh token',
+  })
+  refreshToken?: string;
 }
