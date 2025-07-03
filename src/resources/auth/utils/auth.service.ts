@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { UserService } from 'src/resources/user/user.service';
 import { LoginDto } from '../dto/login.dto';
 import { SignupDto } from '../dto/signup.dto';
@@ -17,18 +18,28 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  private async generateRefreshToken(): Promise<string> {
+    return randomBytes(64).toString('hex');
+  }
+
   async signup(dto: SignupDto) {
     const existing = await this.userService.findByEmail(dto.email);
     if (existing) {
       throw new ConflictException('Email already in use');
     }
     const hashed = await bcrypt.hash(dto.password, 10);
+    const refreshToken = await this.generateRefreshToken();
+    const hashedRefresh = await bcrypt.hash(refreshToken, 10);
     const user = await this.userService.create({
       ...dto,
       password: hashed,
       role: UserRole.USER,
+      refreshToken: hashedRefresh,
     });
-    return this.createToken(user.id, user.email, user.role);
+    return {
+      ...this.createToken(user.id, user.email, user.role),
+      refresh_token: refreshToken,
+    };
   }
 
   async login(dto: LoginDto) {
@@ -40,7 +51,13 @@ export class AuthService {
     if (!valid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    return this.createToken(user.id, user.email, user.role);
+    const refreshToken = await this.generateRefreshToken();
+    const hashedRefresh = await bcrypt.hash(refreshToken, 10);
+    await this.userService.update(user.id, { refreshToken: hashedRefresh });
+    return {
+      ...this.createToken(user.id, user.email, user.role),
+      refresh_token: refreshToken,
+    };
   }
 
   private createToken(id: number, email: string, role: string) {
