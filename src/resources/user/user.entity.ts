@@ -41,4 +41,7 @@ export class User {
     description: 'User role',
   })
   role: UserRole;
+
+  @Column({ nullable: true })
+  refreshToken?: string;
 }
