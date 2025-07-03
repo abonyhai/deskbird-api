@@ -61,7 +61,7 @@ export class UserController {
     ok: { description: 'Update user' },
   })
   @Roles('admin')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   update(@Param('id') id: number, @Body() dto: UpdateUserDto) {
     return this.userService.update(id, dto);
@@ -73,7 +73,7 @@ export class UserController {
     ok: { description: 'Delete user' },
   })
   @Roles('admin')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.userService.remove(id);
