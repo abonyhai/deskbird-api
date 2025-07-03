@@ -1,10 +1,10 @@
-import { Controller, Post, Body, Res, Req } from '@nestjs/common';
-import { Response, Request } from 'express';
+import { Body, Controller, Post, Req, Res } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { ApiProjectController } from 'src/shared/decorators/controller';
 import { ApiProjectRoute } from 'src/shared/decorators/method';
-import { AuthService } from './auth.service';
-import { SignupDto } from '../dto/signup.dto';
 import { LoginDto } from '../dto/login.dto';
+import { SignupDto } from '../dto/signup.dto';
+import { AuthService } from './auth.service';
 
 @ApiProjectController('auth')
 @Controller('auth')
@@ -86,7 +86,7 @@ export class AuthController {
       secure: true,
       sameSite: 'strict',
       path: '/auth/refresh',
-    });Ø
+    });
     return this.authService.logout(refreshToken);
   }
 }
