@@ -15,6 +15,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { Roles } from 'src/shared/decorators/roles.decorator';
+import { RolesGuard } from 'src/shared/guards/roles.guard';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -58,6 +60,8 @@ export class UserController {
     method: 'PATCH',
     ok: { description: 'Update user' },
   })
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   @Patch(':id')
   update(@Param('id') id: number, @Body() dto: UpdateUserDto) {
     return this.userService.update(id, dto);
@@ -68,6 +72,8 @@ export class UserController {
     method: 'DELETE',
     ok: { description: 'Delete user' },
   })
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.userService.remove(id);
