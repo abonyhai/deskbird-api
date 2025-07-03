@@ -72,4 +72,21 @@ export class AuthController {
     });
     return { access_token };
   }
+
+  @ApiProjectRoute({
+    path: '/logout',
+    method: 'POST',
+    ok: { description: 'Logout and revoke refresh token' },
+  })
+  @Post('logout')
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const refreshToken = req.cookies['refresh_token'];
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/auth/refresh',
+    });Ø
+    return this.authService.logout(refreshToken);
+  }
 }

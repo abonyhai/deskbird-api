@@ -79,6 +79,18 @@ export class AuthService {
     };
   }
 
+  async logout(refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+    const user = await this.userService.findByRefreshToken(refreshToken);
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    await this.userService.update(user.id, { refreshToken: null });
+    return { message: 'Logged out successfully' };
+  }
+
   private createToken(id: number, email: string, role: string) {
     const payload = { sub: id, email, role };
     return {
