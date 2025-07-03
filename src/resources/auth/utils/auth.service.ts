@@ -60,6 +60,25 @@ export class AuthService {
     };
   }
 
+  async refresh(refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+    // Find user by refresh token (compare hash)
+    const user = await this.userService.findByRefreshToken(refreshToken);
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    // Issue new tokens
+    const newRefreshToken = await this.generateRefreshToken();
+    const hashedRefresh = await bcrypt.hash(newRefreshToken, 10);
+    await this.userService.update(user.id, { refreshToken: hashedRefresh });
+    return {
+      ...this.createToken(user.id, user.email, user.role),
+      refresh_token: newRefreshToken,
+    };
+  }
+
   private createToken(id: number, email: string, role: string) {
     const payload = { sub: id, email, role };
     return {

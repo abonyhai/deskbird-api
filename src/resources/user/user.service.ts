@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -35,5 +36,15 @@ export class UserService {
 
   remove(id: number) {
     return this.userRepository.delete(id);
+  }
+
+  async findByRefreshToken(refreshToken: string) {
+    const users = await this.userRepository.find();
+    for (const user of users) {
+      if (user.refreshToken && await bcrypt.compare(refreshToken, user.refreshToken)) {
+        return user;
+      }
+    }
+    return null;
   }
 }
