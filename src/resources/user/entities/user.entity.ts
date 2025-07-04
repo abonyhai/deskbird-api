@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import {
   ApiProjectProperty,
   ApiProjectEnumProperty,
-} from 'src/shared/decorators/property';
+} from '../../../shared/decorators/property';
 import { UserRole } from '../utils/user.enum';
 
 @Entity('users')
