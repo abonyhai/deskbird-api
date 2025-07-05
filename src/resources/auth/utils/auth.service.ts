@@ -36,9 +36,12 @@ export class AuthService {
       role: UserRole.USER,
       refreshToken: hashedRefresh,
     });
+
+    const { access_token } = this.createToken(user.id, user.email, user.role);
     return {
-      ...this.createToken(user.id, user.email, user.role),
+      access_token,
       refresh_token: refreshToken,
+      user: this.sanitizeUser(user),
     };
   }
 
@@ -54,9 +57,12 @@ export class AuthService {
     const refreshToken = await this.generateRefreshToken();
     const hashedRefresh = await bcrypt.hash(refreshToken, 10);
     await this.userService.update(user.id, { refreshToken: hashedRefresh });
+
+    const { access_token } = this.createToken(user.id, user.email, user.role);
     return {
-      ...this.createToken(user.id, user.email, user.role),
+      access_token,
       refresh_token: refreshToken,
+      user: this.sanitizeUser(user),
     };
   }
 
@@ -73,9 +79,12 @@ export class AuthService {
     const newRefreshToken = await this.generateRefreshToken();
     const hashedRefresh = await bcrypt.hash(newRefreshToken, 10);
     await this.userService.update(user.id, { refreshToken: hashedRefresh });
+
+    const { access_token } = this.createToken(user.id, user.email, user.role);
     return {
-      ...this.createToken(user.id, user.email, user.role),
+      access_token,
       refresh_token: newRefreshToken,
+      user: this.sanitizeUser(user),
     };
   }
 
@@ -91,10 +100,24 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
+  async getCurrentUser(userId: number) {
+    const user = await this.userService.findOne(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return this.sanitizeUser(user);
+  }
+
   private createToken(id: number, email: string, role: string) {
     const payload = { sub: id, email, role };
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  private sanitizeUser(user: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, refreshToken, ...sanitizedUser } = user;
+    return sanitizedUser;
   }
 }

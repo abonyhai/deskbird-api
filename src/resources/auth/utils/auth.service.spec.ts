@@ -15,6 +15,7 @@ describe('AuthService', () => {
       create: jest.fn(),
       update: jest.fn(),
       findByRefreshToken: jest.fn(),
+      findOne: jest.fn(),
     };
     jwtService = {
       sign: jest.fn().mockReturnValue('access_token'),
@@ -37,50 +38,110 @@ describe('AuthService', () => {
     expect(service).toBeDefined();
   });
 
-  it('signup should create user and return tokens', async () => {
+  it('signup should create user and return tokens with user data', async () => {
+    const mockUser = {
+      id: 1,
+      email: 'test@example.com',
+      role: 'user',
+      fullName: 'Test User',
+    };
     (userService.findByEmail as jest.Mock).mockResolvedValue(null);
-    (userService.create as jest.Mock).mockResolvedValue({
-      id: 1,
-      email: 'a',
-      role: 'user',
-    });
+    (userService.create as jest.Mock).mockResolvedValue(mockUser);
+
     const result = await service.signup({
-      email: 'a',
-      password: 'b',
-      fullName: 'c',
+      email: 'test@example.com',
+      password: 'password123',
+      fullName: 'Test User',
     });
+
     expect(result.access_token).toBe('access_token');
     expect(result.refresh_token).toBeDefined();
+    expect(result.user).toEqual({
+      id: 1,
+      email: 'test@example.com',
+      role: 'user',
+      fullName: 'Test User',
+    });
   });
 
-  it('login should return tokens if credentials valid', async () => {
-    (userService.findByEmail as jest.Mock).mockResolvedValue({
+  it('login should return tokens with user data if credentials valid', async () => {
+    const mockUser = {
       id: 1,
-      email: 'a',
-      password: 'b',
+      email: 'test@example.com',
+      password: 'password123',
       role: 'user',
-    });
-    const result = await service.login({ email: 'a', password: 'b' });
-    expect(result.access_token).toBe('access_token');
-    expect(result.refresh_token).toBeDefined();
-  });
-
-  it('refresh should return new tokens if refresh token valid', async () => {
-    (userService.findByRefreshToken as jest.Mock).mockResolvedValue({
-      id: 1,
-      email: 'a',
-      role: 'user',
-    });
+      fullName: 'Test User',
+    };
+    (userService.findByEmail as jest.Mock).mockResolvedValue(mockUser);
     (userService.update as jest.Mock).mockResolvedValue({});
-    const result = await service.refresh('token');
+
+    const result = await service.login({
+      email: 'test@example.com',
+      password: 'password123',
+    });
+
     expect(result.access_token).toBe('access_token');
     expect(result.refresh_token).toBeDefined();
+    expect(result.user).toEqual({
+      id: 1,
+      email: 'test@example.com',
+      role: 'user',
+      fullName: 'Test User',
+    });
+  });
+
+  it('refresh should return new tokens with user data if refresh token valid', async () => {
+    const mockUser = {
+      id: 1,
+      email: 'test@example.com',
+      role: 'user',
+      fullName: 'Test User',
+    };
+    (userService.findByRefreshToken as jest.Mock).mockResolvedValue(mockUser);
+    (userService.update as jest.Mock).mockResolvedValue({});
+
+    const result = await service.refresh('valid-refresh-token');
+
+    expect(result.access_token).toBe('access_token');
+    expect(result.refresh_token).toBeDefined();
+    expect(result.user).toEqual({
+      id: 1,
+      email: 'test@example.com',
+      role: 'user',
+      fullName: 'Test User',
+    });
   });
 
   it('logout should revoke refresh token', async () => {
-    (userService.findByRefreshToken as jest.Mock).mockResolvedValue({ id: 1 });
+    const mockUser = { id: 1 };
+    (userService.findByRefreshToken as jest.Mock).mockResolvedValue(mockUser);
     (userService.update as jest.Mock).mockResolvedValue({});
-    const result = await service.logout('token');
+
+    const result = await service.logout('valid-refresh-token');
+
     expect(result.message).toBe('Logged out successfully');
+  });
+
+  it('getCurrentUser should return sanitized user data', async () => {
+    const mockUser = {
+      id: 1,
+      email: 'test@example.com',
+      password: 'hashed-password',
+      role: 'user',
+      fullName: 'Test User',
+      refreshToken: 'hashed-refresh-token',
+    };
+    (userService.findOne as jest.Mock).mockResolvedValue(mockUser);
+
+    const result = await service.getCurrentUser(1);
+
+    expect(result).toEqual({
+      id: 1,
+      email: 'test@example.com',
+      role: 'user',
+      fullName: 'Test User',
+    });
+    expect(result.password).toBeUndefined();
+    expect(result.refreshToken).toBeUndefined();
   });
 });
