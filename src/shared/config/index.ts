@@ -8,11 +8,12 @@ export const TypeOrmConfig: TypeOrmModuleAsyncOptions = {
   inject: [ConfigService],
   useFactory: (config: ConfigService) => {
     let cfg: any;
+    const useSsl = config.get('DATABASE_SSL') === 'true';
     if (config.get('DATABASE_URL')) {
       cfg = {
         type: 'postgres',
         url: config.get('DATABASE_URL'),
-        ssl: { rejectUnauthorized: false },
+        ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
         autoLoadEntities: true,
         synchronize: process.env.IS_PRODUCTION !== 'true', // Set to false in production
       };
@@ -24,7 +25,7 @@ export const TypeOrmConfig: TypeOrmModuleAsyncOptions = {
         username: config.get('DB_USERNAME'),
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_DATABASE'),
-        ssl: { rejectUnauthorized: false },
+        ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
         autoLoadEntities: true,
         synchronize: process.env.IS_PRODUCTION !== 'true', // Set to false in production
       };
