@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UserService } from './user.service';
+import { UserDto } from './dto/user.dto';
 
 describe('UserService', () => {
   let service: UserService;
@@ -28,16 +29,62 @@ describe('UserService', () => {
     expect(service).toBeDefined();
   });
 
-  it('findAll should call repository.find', async () => {
-    const findSpy = jest.spyOn(repo, 'find').mockResolvedValue([]);
-    await service.findAll();
-    expect(findSpy).toHaveBeenCalled();
+  it('findAll should return sanitized users', async () => {
+    const mockUsers = [
+      {
+        id: 1,
+        email: 'test@example.com',
+        password: 'hashed-password',
+        fullName: 'Test User',
+        role: 'user',
+        refreshToken: 'hashed-refresh-token',
+      } as User,
+    ];
+    jest.spyOn(repo, 'find').mockResolvedValue(mockUsers);
+
+    const result = await service.findAll();
+
+    expect(result).toEqual([
+      {
+        id: 1,
+        email: 'test@example.com',
+        fullName: 'Test User',
+        role: 'user',
+      } as UserDto,
+    ]);
+    expect((result[0] as any).password).toBeUndefined();
+    expect((result[0] as any).refreshToken).toBeUndefined();
   });
 
-  it('findOne should call repository.findOneBy', async () => {
-    const findOneBySpy = jest.spyOn(repo, 'findOneBy').mockResolvedValue(null);
-    await service.findOne(1);
-    expect(findOneBySpy).toHaveBeenCalledWith({ id: 1 });
+  it('findOne should return sanitized user', async () => {
+    const mockUser = {
+      id: 1,
+      email: 'test@example.com',
+      password: 'hashed-password',
+      fullName: 'Test User',
+      role: 'user',
+      refreshToken: 'hashed-refresh-token',
+    } as User;
+    jest.spyOn(repo, 'findOneBy').mockResolvedValue(mockUser);
+
+    const result = await service.findOne(1);
+
+    expect(result).toEqual({
+      id: 1,
+      email: 'test@example.com',
+      fullName: 'Test User',
+      role: 'user',
+    } as UserDto);
+    expect((result as any)?.password).toBeUndefined();
+    expect((result as any)?.refreshToken).toBeUndefined();
+  });
+
+  it('findOne should return null if user not found', async () => {
+    jest.spyOn(repo, 'findOneBy').mockResolvedValue(null);
+
+    const result = await service.findOne(1);
+
+    expect(result).toBeNull();
   });
 
   it('findByEmail should call repository.findOneBy', async () => {

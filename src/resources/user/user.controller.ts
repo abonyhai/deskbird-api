@@ -13,8 +13,9 @@ import { ApiProjectRoute } from 'src/shared/decorators/method';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserDto } from './dto/user.dto';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { Roles } from 'src/shared/decorators/roles.decorator';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
 
@@ -30,8 +31,13 @@ export class UserController {
     method: 'GET',
     ok: { description: 'List all users' },
   })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users',
+    type: [UserDto],
+  })
   @Get()
-  findAll() {
+  async findAll(): Promise<UserDto[]> {
     return this.userService.findAll();
   }
 
@@ -40,8 +46,13 @@ export class UserController {
     method: 'GET',
     ok: { description: 'Get user by id' },
   })
+  @ApiResponse({
+    status: 200,
+    description: 'User found',
+    type: UserDto,
+  })
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  async findOne(@Param('id') id: number): Promise<UserDto | null> {
     return this.userService.findOne(id);
   }
 

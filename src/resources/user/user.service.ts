@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserDto } from './dto/user.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -13,12 +14,20 @@ export class UserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  findAll() {
-    return this.userRepository.find();
+  private sanitizeUser(user: User): UserDto {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, refreshToken, ...sanitizedUser } = user;
+    return sanitizedUser as UserDto;
   }
 
-  findOne(id: number) {
-    return this.userRepository.findOneBy({ id });
+  async findAll(): Promise<UserDto[]> {
+    const users = await this.userRepository.find();
+    return users.map((user) => this.sanitizeUser(user));
+  }
+
+  async findOne(id: number): Promise<UserDto | null> {
+    const user = await this.userRepository.findOneBy({ id });
+    return user ? this.sanitizeUser(user) : null;
   }
 
   findByEmail(email: string) {
