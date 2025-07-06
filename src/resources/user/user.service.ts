@@ -64,7 +64,7 @@ export class UserService {
       }
     }
     return null;
-  }
+  };
 
   async seedUsers(): Promise<{
     created: number;
@@ -113,5 +113,17 @@ export class UserService {
         .filter((u) => u.role === UserRole.USER)
         .map((u) => u.email),
     };
+  }
+
+  async mockHashAllPasswords(
+    newPassword: string = 'password123',
+  ): Promise<{ updated: number }> {
+    const users = await this.userRepository.find();
+    const hashed = await bcrypt.hash(newPassword, 10);
+    for (const user of users) {
+      user.password = hashed;
+      await this.userRepository.save(user);
+    }
+    return { updated: users.length };
   }
 }

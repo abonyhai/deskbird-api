@@ -115,4 +115,16 @@ export class UserController {
   }> {
     return this.userService.seedUsers();
   }
+
+  @ApiProjectRoute({
+    path: '/mock-hash-passwords',
+    method: 'PATCH',
+    ok: { description: 'Update all users passwords to a bcrypt hash' },
+  })
+  @Roles('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Patch('mock-hash-passwords')
+  async mockHashAllPasswords(): Promise<{ updated: number }> {
+    return this.userService.mockHashAllPasswords();
+  }
 }
