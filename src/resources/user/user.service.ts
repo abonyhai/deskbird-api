@@ -6,6 +6,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserDto } from './dto/user.dto';
 import * as bcrypt from 'bcrypt';
+import { faker } from '@faker-js/faker';
+import { UserRole } from './utils/user.enum';
 
 @Injectable()
 export class UserService {
@@ -62,5 +64,54 @@ export class UserService {
       }
     }
     return null;
+  }
+
+  async seedUsers(): Promise<{
+    created: number;
+    admins: string[];
+    users: string[];
+  }> {
+    const users: CreateUserDto[] = [];
+    // 98 random users
+    for (let i = 0; i < 98; i++) {
+      console.log('PUSHING USER')
+      users.push({
+        email: faker.internet.email().toLowerCase(),
+        password: await bcrypt.hash('password123', 10),
+        fullName: faker.person.fullName(),
+        role: UserRole.USER,
+      });
+    }
+    // 2 random admins
+    const admins: string[] = [];
+    for (let i = 0; i < 2; i++) {
+      const name = `Admin ${faker.person.fullName()}`;
+      const email = faker.internet
+        .email({
+          firstName: 'admin',
+          lastName: faker.person.lastName(),
+        })
+        .toLowerCase();
+      admins.push(email);
+      users.push({
+        email,
+        password: await bcrypt.hash('admin123', 10),
+        fullName: name,
+        role: UserRole.ADMIN,
+      });
+    }
+    // Save all users
+    const createdUsers = await Promise.all(
+      users.map((dto) => this.create(dto)),
+    );
+    return {
+      created: createdUsers.length,
+      admins: createdUsers
+        .filter((u) => u.role === UserRole.ADMIN)
+        .map((u) => u.email),
+      users: createdUsers
+        .filter((u) => u.role === UserRole.USER)
+        .map((u) => u.email),
+    };
   }
 }
