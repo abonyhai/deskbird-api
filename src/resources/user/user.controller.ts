@@ -96,23 +96,23 @@ export class UserController {
   /**
    * Public endpoint to seed 98 random users and 2 random admins.
    */
-  // @ApiProjectRoute({
-  //   path: '/seed',
-  //   method: 'POST',
-  //   ok: { description: 'Seed 98 users and 2 admins' },
-  // })
-  // @ApiResponse({
-  //   status: 201,
-  //   description: 'Seeded users',
-  //   type: [UserDto],
-  // })
-  // @Post('seed')
-  // @UseGuards() // disables class-level JwtAuthGuard for this endpoint
-  // async seedUsers(): Promise<{
-  //   created: number;
-  //   admins: string[];
-  //   users: string[];
-  // }> {
-  //   return this.userService.seedUsers();
-  // }
+  @ApiProjectRoute({
+    path: '/seed',
+    method: 'POST',
+    ok: { description: 'Seed 98 users and 2 admins' },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Seeded users',
+    type: [UserDto],
+  })
+  @Post('seed')
+  @UseGuards() // disables class-level JwtAuthGuard for this endpoint
+  async seedUsers(): Promise<{
+    created: number;
+    admins: string[];
+    users: string[];
+  }> {
+    return this.userService.seedUsers();
+  }
 }
