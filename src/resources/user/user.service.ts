@@ -34,17 +34,21 @@ export class UserService {
     return this.userRepository.findOneBy({ email });
   }
 
-  create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto): Promise<UserDto> {
     const user = this.userRepository.create(dto);
-    return this.userRepository.save(user);
+    const saved = await this.userRepository.save(user);
+    return this.sanitizeUser(saved);
   }
 
-  update(id: number, dto: UpdateUserDto) {
-    return this.userRepository.update(id, dto);
+  async update(id: number, dto: UpdateUserDto): Promise<UserDto | null> {
+    await this.userRepository.update(id, dto);
+    const updated = await this.userRepository.findOneBy({ id });
+    return updated ? this.sanitizeUser(updated) : null;
   }
 
-  remove(id: number) {
-    return this.userRepository.delete(id);
+  async remove(id: number): Promise<{ deleted: boolean }> {
+    await this.userRepository.delete(id);
+    return { deleted: true };
   }
 
   async findByRefreshToken(refreshToken: string) {

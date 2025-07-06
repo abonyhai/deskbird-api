@@ -62,7 +62,7 @@ export class UserController {
     ok: { description: 'Create user' },
   })
   @Post()
-  create(@Body() dto: CreateUserDto) {
+  async create(@Body() dto: CreateUserDto): Promise<UserDto> {
     return this.userService.create(dto);
   }
 
@@ -74,7 +74,10 @@ export class UserController {
   @Roles('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
-  update(@Param('id') id: number, @Body() dto: UpdateUserDto) {
+  async update(
+    @Param('id') id: number,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UserDto | null> {
     return this.userService.update(id, dto);
   }
 
@@ -86,7 +89,7 @@ export class UserController {
   @Roles('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  async remove(@Param('id') id: number): Promise<{ deleted: boolean }> {
     return this.userService.remove(id);
   }
 }

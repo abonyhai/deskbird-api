@@ -93,24 +93,61 @@ describe('UserService', () => {
     expect(findOneBySpy).toHaveBeenCalledWith({ email: 'test@example.com' });
   });
 
-  it('create should call repository.create and save', async () => {
-    const createSpy = jest.spyOn(repo, 'create').mockReturnValue({} as User);
-    const saveSpy = jest.spyOn(repo, 'save').mockResolvedValue({} as User);
-    await service.create({} as any);
-    expect(createSpy).toHaveBeenCalled();
-    expect(saveSpy).toHaveBeenCalled();
+  it('create should return sanitized user', async () => {
+    const mockUser = {
+      id: 1,
+      email: 'test@example.com',
+      password: 'hashed-password',
+      fullName: 'Test User',
+      role: 'user',
+      refreshToken: 'hashed-refresh-token',
+    } as User;
+    jest.spyOn(repo, 'create').mockReturnValue(mockUser);
+    jest.spyOn(repo, 'save').mockResolvedValue(mockUser);
+
+    const result = await service.create({} as any);
+
+    expect(result).toEqual({
+      id: 1,
+      email: 'test@example.com',
+      fullName: 'Test User',
+      role: 'user',
+    } as UserDto);
+    expect((result as any).password).toBeUndefined();
+    expect((result as any).refreshToken).toBeUndefined();
   });
 
-  it('update should call repository.update', async () => {
+  it('update should return the updated sanitized user', async () => {
+    const mockUser = {
+      id: 1,
+      email: 'test@example.com',
+      password: 'hashed-password',
+      fullName: 'Test User',
+      role: 'user',
+      refreshToken: 'hashed-refresh-token',
+    } as User;
     const updateSpy = jest.spyOn(repo, 'update').mockResolvedValue({} as any);
-    await service.update(1, {} as any);
-    expect(updateSpy).toHaveBeenCalledWith(1, {});
+    const findOneBySpy = jest.spyOn(repo, 'findOneBy').mockResolvedValue(mockUser);
+
+    const result = await service.update(1, { fullName: 'Test User' });
+
+    expect(updateSpy).toHaveBeenCalledWith(1, { fullName: 'Test User' });
+    expect(findOneBySpy).toHaveBeenCalledWith({ id: 1 });
+    expect(result).toEqual({
+      id: 1,
+      email: 'test@example.com',
+      fullName: 'Test User',
+      role: 'user',
+    } as UserDto);
+    expect((result as any).password).toBeUndefined();
+    expect((result as any).refreshToken).toBeUndefined();
   });
 
-  it('remove should call repository.delete', async () => {
+  it('remove should return { deleted: true }', async () => {
     const deleteSpy = jest.spyOn(repo, 'delete').mockResolvedValue({} as any);
-    await service.remove(1);
+    const result = await service.remove(1);
     expect(deleteSpy).toHaveBeenCalledWith(1);
+    expect(result).toEqual({ deleted: true });
   });
 
   it('findByRefreshToken should return user if token matches', async () => {
