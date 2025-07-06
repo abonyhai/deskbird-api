@@ -8,6 +8,7 @@ import { UserDto } from './dto/user.dto';
 import * as bcrypt from 'bcrypt';
 import { faker } from '@faker-js/faker';
 import { UserRole } from './utils/user.enum';
+import { BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class UserService {
@@ -43,6 +44,9 @@ export class UserService {
   }
 
   async update(id: number, dto: UpdateUserDto): Promise<UserDto | null> {
+    if (!dto || Object.keys(dto).length === 0) {
+      throw new BadRequestException('No update values provided');
+    }
     await this.userRepository.update(id, dto);
     const updated = await this.userRepository.findOneBy({ id });
     return updated ? this.sanitizeUser(updated) : null;
