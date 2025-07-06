@@ -64,6 +64,17 @@ describe('AuthService', () => {
     });
   });
 
+  it('signup should throw ConflictException if email exists', async () => {
+    (userService.findByEmail as jest.Mock).mockResolvedValue({ id: 1 });
+    await expect(
+      service.signup({
+        email: 'test@example.com',
+        password: 'pw',
+        fullName: 'Test',
+      }),
+    ).rejects.toThrow('Email already in use');
+  });
+
   it('login should return tokens with user data if credentials valid', async () => {
     const mockUser = {
       id: 1,
@@ -90,6 +101,33 @@ describe('AuthService', () => {
     });
   });
 
+  it('login should throw UnauthorizedException if email not found', async () => {
+    (userService.findByEmail as jest.Mock).mockResolvedValue(null);
+    await expect(
+      service.login({
+        email: 'notfound@example.com',
+        password: 'pw',
+      }),
+    ).rejects.toThrow('Invalid credentials');
+  });
+
+  it('login should throw UnauthorizedException if password is invalid', async () => {
+    (userService.findByEmail as jest.Mock).mockResolvedValue({
+      id: 1,
+      email: 'test@example.com',
+      password: 'not-the-same',
+      role: 'user',
+      fullName: 'Test User',
+    });
+    jest.spyOn(bcrypt, 'compare').mockResolvedValue(false);
+    await expect(
+      service.login({
+        email: 'test@example.com',
+        password: 'wrong',
+      }),
+    ).rejects.toThrow('Invalid credentials');
+  });
+
   it('refresh should return new tokens with user data if refresh token valid', async () => {
     const mockUser = {
       id: 1,
@@ -112,6 +150,19 @@ describe('AuthService', () => {
     });
   });
 
+  it('refresh should throw UnauthorizedException if no token provided', async () => {
+    await expect(service.refresh('')).rejects.toThrow(
+      'No refresh token provided',
+    );
+  });
+
+  it('refresh should throw UnauthorizedException if token is invalid', async () => {
+    (userService.findByRefreshToken as jest.Mock).mockResolvedValue(null);
+    await expect(service.refresh('badtoken')).rejects.toThrow(
+      'Invalid refresh token',
+    );
+  });
+
   it('logout should revoke refresh token', async () => {
     const mockUser = { id: 1 };
     (userService.findByRefreshToken as jest.Mock).mockResolvedValue(mockUser);
@@ -120,6 +171,19 @@ describe('AuthService', () => {
     const result = await service.logout('valid-refresh-token');
 
     expect(result.message).toBe('Logged out successfully');
+  });
+
+  it('logout should throw UnauthorizedException if no token provided', async () => {
+    await expect(service.logout('')).rejects.toThrow(
+      'No refresh token provided',
+    );
+  });
+
+  it('logout should throw UnauthorizedException if token is invalid', async () => {
+    (userService.findByRefreshToken as jest.Mock).mockResolvedValue(null);
+    await expect(service.logout('badtoken')).rejects.toThrow(
+      'Invalid refresh token',
+    );
   });
 
   it('getCurrentUser should return sanitized user data', async () => {
@@ -143,5 +207,10 @@ describe('AuthService', () => {
     });
     expect(result.password).toBeUndefined();
     expect(result.refreshToken).toBeUndefined();
+  });
+
+  it('getCurrentUser should throw UnauthorizedException if user not found', async () => {
+    (userService.findOne as jest.Mock).mockResolvedValue(null);
+    await expect(service.getCurrentUser(999)).rejects.toThrow('User not found');
   });
 });

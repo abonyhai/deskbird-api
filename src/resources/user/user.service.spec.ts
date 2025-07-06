@@ -163,4 +163,26 @@ describe('UserService', () => {
     const result = await service.findByRefreshToken('token');
     expect(result).toBeNull();
   });
+
+  it('mockHashAllPasswords should hash all user passwords and return count', async () => {
+    const users = [
+      { id: 1, password: 'plain1' } as User,
+      { id: 2, password: 'plain2' } as User,
+    ];
+    jest.spyOn(repo, 'find').mockResolvedValue(users);
+    const saveSpy = jest
+      .spyOn(repo, 'save')
+      .mockImplementation(async (user) => user as any);
+    const hashSpy = jest
+      .spyOn(bcrypt, 'hash')
+      .mockImplementation(async (pw) => `hashed-${pw}`);
+
+    const result = await service.mockHashAllPasswords('testpass');
+
+    expect(hashSpy).toHaveBeenCalledWith('testpass', 10);
+    expect(saveSpy).toHaveBeenCalledTimes(2);
+    expect(users[0].password).toBe('hashed-testpass');
+    expect(users[1].password).toBe('hashed-testpass');
+    expect(result).toEqual({ updated: 2 });
+  });
 });
