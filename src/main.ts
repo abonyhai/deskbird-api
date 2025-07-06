@@ -10,7 +10,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:4200', // Local Angular development server
-      'https://deskbird-web.onrender.com/', // Deployed frontend URL
+      'https://deskbird-web.onrender.com', // Deployed frontend URL
       process.env.FRONTEND_URL, // Environment variable for flexibility
     ].filter(Boolean), // Remove undefined values
     credentials: true, // Allow cookies and authorization headers
